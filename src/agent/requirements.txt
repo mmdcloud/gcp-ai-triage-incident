@@ -1,0 +1,2 @@
+anthropic==0.40.0
+google-cloud-logging==3.11.3
