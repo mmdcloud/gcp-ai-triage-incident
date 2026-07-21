@@ -21,7 +21,7 @@ module "vpc" {
 # Serverless VPC Connectors
 # -----------------------------------------------------------------------------------------
 module "vpc_connectors" {
-  source   = "./modules/network/vpc-connector"
+  source   = "./modules/vpc-connector"
   vpc_name = module.vpc.vpc_name
   serverless_vpc_connectors = [
     {
@@ -41,7 +41,7 @@ module "artifact_registry" {
   source        = "./modules/artifact-registry"
   location      = var.location
   description   = "Artifact repository"
-  repository_id = "artifact-registry"
+  repository_id = "cloudrun-service"
 }
 
 resource "null_resource" "build_and_push" {
@@ -49,7 +49,7 @@ resource "null_resource" "build_and_push" {
     always_run = timestamp()
   }
   provisioner "local-exec" {
-    command = "bash ${path.cwd}/../../src/artifact_push.sh ${data.google_project.project.project_id}"
+    command = "bash ${path.cwd}/../src/service/artifact_push.sh cloudrun-service ${var.location} ${var.project_id}"
   }
 
   depends_on = [
@@ -105,6 +105,7 @@ module "cloudrun_service" {
       volume_mounts     = []
       cpu_idle          = true
       startup_cpu_boost = true
+      port              = 8080
       image             = "${var.location}-docker.pkg.dev/${data.google_project.project.project_id}/cloudrun-service/cloudrun-service:latest"
     }
   ]
